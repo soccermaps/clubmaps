@@ -1,54 +1,1081 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <title>Exemple de Leaflet sans Browserify</title>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
-  <style type="text/css">
-  #map { height: 380px; }
-  </style>
-  <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
-  <script src="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
-</head>
-<body>
-  <div id="map"></div>
-  <script>
-  var my_json;
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="">
+<meta name="author" content="">
+<title>The Beer Mapping Project</title>
+<!-- Bootstrap core CSS -->
+<link href="style/css/bootstrap.css" rel="stylesheet">
+<link href="style/css/settings.css" rel="stylesheet">
+<link href="style/css/owl.carousel.css" rel="stylesheet">
+<link href="style/js/google-code-prettify/prettify.css" rel="stylesheet">
+<link href="style/js/fancybox/jquery.fancybox.css" rel="stylesheet" type="text/css" media="all"/>
+<link href="style/js/fancybox/helpers/jquery.fancybox-thumbs.css?v=1.0.2" rel="stylesheet" type="text/css"/>
+<link href="style.css?1518451853" rel="stylesheet">
+<link href="style/css/color/blue.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+<link href="style/type/fontello.css" rel="stylesheet">
+<link href="style/type/picons.css" rel="stylesheet">
+<link href="style/type/budicons.css" rel="stylesheet">
+<!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+<!--[if lt IE 9]>
+      <script src="style/js/html5shiv.js"></script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+      <![endif]-->
+      
+    <!-- CSRF Token -->
+    <meta name="csrf-token" content="276b0e310ce54ac9273a091bf8364454">
 
-  var map = L.map('map').setView([51.505, -0.09], 14);
+    <!-- Bootstrap and some custom CSS  -->
+    <link href="https://beermapping.com/login/assets/css/vendor/bootstrap-noconflict.min.css" rel="stylesheet">
+    <link href="https://beermapping.com/login/assets/css/modal-only.css" rel="stylesheet">
 
-  L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 18,
-        attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
-  }).addTo(map);
+	<!-- JavaScript -->
+    <script src="https://beermapping.com/login/assets/js/vendor/jquery-1.11.1.min.js"></script>
+    <script src="https://beermapping.com/login/assets/js/vendor/bootstrap.min.js"></script>
+    <script src="https://beermapping.com/login/assets/js/easylogin.js"></script>
+    <script src="https://beermapping.com/login/assets/js/main.js"></script>
+    <script>
+        EasyLogin.options = {
+            ajaxUrl: 'https://beermapping.com/login/ajax.php',
+            lang: {"error":"Oops! Something went wrong.","connecting":"Connecting to ","changes_saved":"Your settings have been saved.","pass_changed":"Your password has been changed!","no_messages":"You don't have any messages yet.","loading":"Loading...","message_sent":"Your message has been sent to the Webmaster.","comment":" Comment","comments":" Comments"},
+            debug: 1,
+        };
+    </script>
 
-  var smallIcon = new L.Icon({
-    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-icon.png',
-    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-icon-2x.png',
-    iconSize:    [25, 41],
-    iconAnchor:  [12, 41],
-    popupAnchor: [1, -34],
-  });
 
-  function onEachFeature(feature, layer) {
-    console.log(feature);
-    layer.bindPopup(feature.properties.ATT1);
-  }
+   <style>
+      div#map-container {
+        width: 100%;
+      	height: 700px;
+      }
+      div#map {
+        width: 100%;
+        height: 100%;
+      }
+      #actions {
+        list-style: none;
+        padding: 0;
+      }
+      #inline-actions {
+        padding-top: 10px;
+      }
+      .item {
+        margin-left: 20px;
+      }
+      
+      .address{
+      	float:left;
+      	width:55%;
+      	
+      }
+      .score{    	
+      	float:left;
+      	width:40%;
+      	text-align:center;
+      	font-size:3em;
+      	margin-top:40px;
+      	font-weight:bold;
+      	border:1px solid #cecece;
+      	padding:10px;
+      }
+      .gscore{
+      	font-size:1.2em;
+      }
+      .no-score{
+       	float:left;
+      	width:40%;
+      	text-align:center;
+      	font-size:2em;
+      	margin-top:40px;
+      	font-weight:bold;
+      	border:1px solid #cecece;
+      	padding:10px;     	
+      }
+        @media print
+        {
+        	#map{	
+        		height:500px;
+        		margin:0;	
+			}		
+			img {
+			    max-width: none !important;
+			}
+			.gmnoprint{
+			  display:none;
+			}
+			.navbar-header{
+				display:none;
+			}	
+			footer{
+				display:none;	
+			}
 
-  $.getJSON('sample.json', function(data) {
-    console.log(data);
+			#printlogo{
+				display:block !important;
+			}
+        }
+    </style>
+   
+   <script src="//maps.googleapis.com/maps/api/js?v=3.exp&key=AIzaSyDYk4KySMwEsXzlpGBTi6n3MxvWXnfeOmU&libraries=geometry"></script>
+    
+    <script type="text/javascript" src="mapincludes/src/markerclusterer.js"></script>
+  
 
-    L.geoJson(data, {
-      pointToLayer: function(feature, latlng) {
-        console.log(latlng, feature);
-        return L.marker(latlng, {
-          icon: smallIcon
+    <script>
+    function Get(yourUrl){
+        var Httpreq = new XMLHttpRequest(); // a new request
+        Httpreq.open("GET",yourUrl,false);
+        Httpreq.send(null);
+        return Httpreq.responseText;          
+    }
+    
+      var styles = [ [{
+        url: 'https://beermapping.comimages/pin.png',
+        height: 48,
+        width: 30,
+        anchor: [-18, 0],
+        textColor: '#ffffff',
+        textSize: 10,
+        iconAnchor: [15, 48]
+      }]];
+
+      function makeLink() {
+  	    location.hash = "#/"+map.getCenter().lat().toFixed(3)+"/"+map.getCenter().lng().toFixed(3)+"/"+map.getZoom();
+  	}
+
+      var markerClusterer = null;
+      var map = null;
+      
+      var imageUrl = 'https://beermapping.com/images/mm_20_gray.png';
+      var breweryImageUrl = 'https://beermapping.com/images/mm_20_red.png';
+      var brewpubImageUrl = 'https://beermapping.com/images/mm_20_blue.png';
+      var beerbarImageUrl = 'https://beermapping.com/images/mm_20_yellow.png';
+      var beerstoreImageUrl = 'https://beermapping.com/images/mm_20_green.png';
+      var homebrewImageUrl = 'https://beermapping.com/images/mm_20_brown.png';
+
+      var markerGroups = {
+  		    "Brewery": [],
+  		        "Brewpub": [],
+  		        "Beer Bar/Restaurant": [],
+  		        "Beer Store": [],
+  		        "Homebrew": [],
+  		        "90s": [],
+  		        "80s": [],
+  		        "70s": []
+  		};
+
+            var mapLat = 40.71616;
+      var mapLng = -105.16570;
+      var mapZoom = 10;
+      
+    	//Create one global InfoWindow.
+    	var infowindow = new google.maps.InfoWindow({
+  			disableAutoPan: true
         });
-      },
-      onEachFeature: onEachFeature
-    }).addTo(map);
-  });
-  </script>
+
+      var myLocation = '';
+      
+      var locname;
+
+      function refreshMap() {
+
+        if (markerClusterer) {
+//         	var markerarray = markerClusterer.getMarkers();
+//         	for (var i = 0, len = markerarray.length; i < len; i++) {
+//         		markerClusterer.removeMarker(markerarray[i]);
+//         	}
+            markerClusterer.clearMarkers();
+        }
+
+        var markers = [];
+
+        // First, determine the map bounds
+        var bounds = map.getBounds();
+
+        // Then the points
+        var swPoint = bounds.getSouthWest();
+        var nePoint = bounds.getNorthEast();
+
+        // Now, each individual coordinate
+        var swLat = swPoint.lat();
+        var swLng = swPoint.lng();
+        var neLat = nePoint.lat();
+        var neLng = nePoint.lng();        
+
+        var radius = google.maps.geometry.spherical.computeDistanceBetween(swPoint, nePoint);
+        //taking a radius to a diameter
+        radius = radius * .5;
+        //calculating miles from meters (1609.34 per mile)
+        radius = radius / 1609.34;
+        var center = map.getCenter();
+
+		var data = JSON.parse(Get('includes/dataradius.php?lat=' + center.lat() + '&lng=' + center.lng() + '&radius=' + radius));
+		var totalCount = data.count;
+
+		var bounds1 = new google.maps.LatLngBounds();
+            
+	    for (var i = 0; i < totalCount; i++) {
+		        
+			var latLng = new google.maps.LatLng(data.locations[i].lat, data.locations[i].lng)
+	          
+	    	locname = data.locations[i].name;
+
+	        //this is where we build our markerimage (pin)
+	        var status = data.locations[i].status;
+	        if(status == 'Brewery'){
+	        	var markerImage = new google.maps.MarkerImage(breweryImageUrl,new google.maps.Size(16, 16));
+	        }else if(status == 'Brewpub'){
+	        	var markerImage = new google.maps.MarkerImage(brewpubImageUrl,new google.maps.Size(16, 16));
+	        }else if(status == 'Beer Bar/Restaurant'){
+	        	var markerImage = new google.maps.MarkerImage(beerbarImageUrl,new google.maps.Size(16, 16));
+	        }else if(status == 'Beer Store'){
+	        	var markerImage = new google.maps.MarkerImage(beerstoreImageUrl,new google.maps.Size(16, 16));
+	        }else if(status == 'Homebrew'){
+	        	var markerImage = new google.maps.MarkerImage(homebrewImageUrl,new google.maps.Size(16, 16));
+	        }else{
+	        	var markerImage = new google.maps.MarkerImage(imageUrl,new google.maps.Size(16, 16));
+	        }
+	          
+	        var marker = new google.maps.Marker({
+	            position: latLng,
+	            draggable: false,
+	            icon: markerImage,
+	            title: locname,
+	            infowindow: infowindow,
+	            type: status
+	        });  
+	        if (!markerGroups[status]) markerGroups[status] = [];
+	        markerGroups[status].push(marker);   
+	        if(data.locations[i].total > 89){
+				markerGroups['90s'].push(marker);
+	        }else if(data.locations[i].total > 79){
+	        	markerGroups['80s'].push(marker);
+	        }else{
+	        	markerGroups['70s'].push(marker);
+	        }
+	
+	        //Attach click event to the marker.
+	        (function (marker, data) {
+	
+				var contentString = '<div id="content" style="width:250px;min-height:40px">'+
+		          '<div id="siteNotice">'+
+		          '</div>'+
+		          '<h1 id="firstHeading" class="firstHeading"><a href="https://beermapping.com/location/' + data.locations[i].id + '">' + data.locations[i].name + '</a></h1>'+
+		          '<div id="bodyContent">'+
+		          '<div class="address">' + 
+		          data.locations[i].street + '<br />' +
+		          data.locations[i].city + ', ' + data.locations[i].state + ' ' + data.locations[i].zip + '<br />' +
+		          data.locations[i].country + '<br />' +
+		          data.locations[i].phone + '<br /><a href="' +
+		          data.locations[i].url + '">website</a><br />' + 
+		          data.locations[i].status + '</div>';
+	
+				  if(data.locations[i].total == 0){
+					  contentString += '<div class="no-score">No Score</div>';
+				  }else{
+					  contentString += '<div class="score"><a href="https://beermapping.com/location/' + data.locations[i].id + '">' + data.locations[i].total + '</a></div>';
+				  } 
+				  if(!!data.locations[i].gtotal){
+					  if(data.locations[i].gtotal != '0'){
+					  	contentString += '<div style="clear:both;"></div><div class="gscore"><strong>' + data.locations[i].gtotal + ' out of 5 </strong>(Google Reviews)</div>';
+					  }
+				  }  
+	
+		          contentString += '<div style="clear:both;"></div>'+
+		          '</div>'+
+		          '</div>';
+		                   
+	           google.maps.event.addListener(marker, "click", function (e) {
+	                  //Wrap the content inside an HTML DIV in order to set height and width of InfoWindow.
+	                  infowindow.setContent(contentString);
+	                  infowindow.open(map, marker);
+	              });
+	         })(marker, data);          
+	          
+	          markers.push(marker);
+        }
+
+        //setting these to -1 to be the default
+        var zoom = parseInt(11);
+        var size = parseInt(-1);
+        var style = parseInt(-1);
+        zoom = zoom === -1 ? null : zoom;
+        size = size === -1 ? null : size;
+        style = style === -1 ? null: style;
+
+        markerClusterer = new MarkerClusterer(map, markers, {
+          maxZoom: zoom,
+          gridSize: size,
+          styles: styles[style],
+          imagePath: 'mapincludes/images/m'
+        });
+      }
+
+      function geoFindMe() {
+    	  var output = document.getElementById("out");
+
+    	  if (!navigator.geolocation){
+//     	    output.innerHTML = "<p>Geolocation is not supported by your browser</p>";
+    	    return;
+    	  }
+
+    	  function success(position) {
+    	    var latitude  = position.coords.latitude;
+    	    var longitude = position.coords.longitude;
+
+    	    var url = window.location.protocol + "//" + window.location.host + window.location.pathname + "?lat=" + latitude + 
+    		    "&lon=" + longitude + "&z=15";
+    	    myLocation = {lat: latitude, lng: longitude};
+
+    	  }
+
+    	  function error() {
+//     	    output.innerHTML = "<p  style='text-align:center;' >Can not center map on your location.</p>";
+    	  }
+
+    	  navigator.geolocation.getCurrentPosition(success, error);
+	}
+
+      function initialize() {
+
+    	  var mapDiv = document.getElementById('map');
+    
+          map = new google.maps.Map(document.getElementById('map'), {
+            zoom: mapZoom,
+            center: new google.maps.LatLng(mapLat, mapLng),
+            mapTypeId: google.maps.MapTypeId.ROADMAP,
+            scrollwheel: true,
+          });
+
+          var opt = { minZoom: 7};
+          map.setOptions(opt);
+          
+          var timeout;
+          google.maps.event.addListener(map, 'bounds_changed',function(){
+        	  window.clearTimeout(timeout);
+        	  timeout = window.setTimeout(function () {
+        		  refreshMap();
+    	  		    var BreweryPin = document.getElementById('BreweryPin');
+    	  		    var BrewpubPin = document.getElementById('BrewpubPin');
+    	  		    var BeerBarPin = document.getElementById('BeerBarPin');
+    	  		    var BeerStorePin = document.getElementById('BeerStorePin');
+    	  		    var HomebrewPin = document.getElementById('HomebrewPin');
+    	  		    if(BreweryPin.getAttribute('src') === 'https://beermapping.com/images/mm_20_gray.png'){
+    	  		    	hideGroup('Brewery');
+    	  		    }
+    	  		    if(BrewpubPin.getAttribute('src') === 'https://beermapping.com/images/mm_20_gray.png'){
+        	  		    hideGroup('Brewpub');
+    	  		    }
+    	  		    if(BeerBarPin.getAttribute('src') === 'https://beermapping.com/images/mm_20_gray.png'){
+        	  		    hideGroup('Beer Bar/Restaurant');
+    	  		    }
+    	  		    if(BeerStorePin.getAttribute('src') === 'https://beermapping.com/images/mm_20_gray.png'){
+        	  		    hideGroup('Beer Store');
+    	  		    }
+    	  		    if(HomebrewPin.getAttribute('src') === 'https://beermapping.com/images/mm_20_gray.png'){
+        	  		    hideGroup('Homebrew');
+    	  		    }
+        	  }, 500);  
+          })
+
+          google.maps.event.addListener(map,'idle',function(){ 
+    		    var center = map.getCenter();
+    		    var lat = center.lat().toFixed(5);
+    		    var lng = center.lng().toFixed(5);
+    		    var zoom = map.getZoom();
+    		    if (lat != '39.82820'){
+	    	    	if (history.pushState) {
+	    	  		    var newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + "?lat=" + lat + 
+	    	  		    "&lon=" + lng + 
+	    	  		    "&z=" + zoom;
+	    	  		    window.history.pushState({path:newurl},'',newurl);
+	    	  		}
+// 	    	    	refreshMap();
+    		    }
+    		    
+    		})
+			
+			//this should be setting the lat/long of var myLocation
+			geoFindMe();
+			
+  	      	// Create the DIV to hold the control and call the CenterControl()
+  	      	// constructor passing in this DIV.
+  	      	var centerControlDiv = document.createElement('div');
+  	      	var centerControl = new CenterControl(centerControlDiv, map);
+  	      	centerControlDiv.index = 1;
+  	      	map.controls[google.maps.ControlPosition.TOP_CENTER].push(centerControlDiv);
+        }
+
+      function clearClusters(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        markerClusterer.clearMarkers();
+      }
+
+      function toggleGroup(type) {
+  	    for (var i = 0; i < markerGroups[type].length; i++) {
+  	        var marker = markerGroups[type][i];
+  	        if (!marker.getVisible()) {
+  	            marker.setVisible(true);
+  	            if(type == 'Brewery'){
+  	            	document.getElementById('BreweryPin').src='https://beermapping.com/images/mm_20_red.png';
+  	            }else if(type == 'Brewpub'){
+  	            	document.getElementById('BrewpubPin').src='https://beermapping.com/images/mm_20_blue.png';
+  	            }else if(type == 'Beer Bar/Restaurant'){
+  	            	document.getElementById('BeerBarPin').src='https://beermapping.com/images/mm_20_yellow.png';
+  	            }else if(type == 'Beer Store'){
+  	            	document.getElementById('BeerStorePin').src='https://beermapping.com/images/mm_20_green.png';
+  	            }else if(type == 'Homebrew'){
+  	            	document.getElementById('HomebrewPin').src='https://beermapping.com/images/mm_20_brown.png';
+  	            }  	            
+  	        } else {
+  	            marker.setVisible(false);
+  	            if(type == 'Brewery'){
+  	            	document.getElementById('BreweryPin').src='https://beermapping.com/images/mm_20_gray.png';
+  	            }else if(type == 'Brewpub'){
+  	            	document.getElementById('BrewpubPin').src='https://beermapping.com/images/mm_20_gray.png';
+  	            }else if(type == 'Beer Bar/Restaurant'){
+  	            	document.getElementById('BeerBarPin').src='https://beermapping.com/images/mm_20_gray.png';
+  	            }else if(type == 'Beer Store'){
+  	            	document.getElementById('BeerStorePin').src='https://beermapping.com/images/mm_20_gray.png';
+  	            }else if(type == 'Homebrew'){
+  	            	document.getElementById('HomebrewPin').src='https://beermapping.com/images/mm_20_gray.png';
+  	            }
+  	        }
+  	    }
+  	}
+
+  	function hideGroup(type){
+  		for (var i = 0; i < markerGroups[type].length; i++) {
+  	        var marker = markerGroups[type][i];
+            marker.setVisible(false);
+	            if(type == 'Brewery'){
+	            	document.getElementById('BreweryPin').src='https://beermapping.com/images/mm_20_gray.png';
+	            }else if(type == 'Brewpub'){
+	            	document.getElementById('BrewpubPin').src='https://beermapping.com/images/mm_20_gray.png';
+	            }else if(type == 'Beer Bar/Restaurant'){
+	            	document.getElementById('BeerBarPin').src='https://beermapping.com/images/mm_20_gray.png';
+	            }else if(type == 'Beer Store'){
+	            	document.getElementById('BeerStorePin').src='https://beermapping.com/images/mm_20_gray.png';
+	            }else if(type == 'Homebrew'){
+	            	document.getElementById('HomebrewPin').src='https://beermapping.com/images/mm_20_gray.png';
+	            }
+  		}
+  	}
+
+      function CenterControl(controlDiv, map) {
+
+    	  // Set CSS for the control border.
+    	  var controlUI = document.createElement('div');
+    	  controlUI.style.backgroundColor = '#fff';
+    	  controlUI.style.border = '2px solid #fff';
+    	  controlUI.style.borderRadius = '3px';
+    	  controlUI.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
+    	  controlUI.style.cursor = 'pointer';
+    	  controlUI.style.marginBottom = '22px';
+    	  controlUI.style.textAlign = 'center';
+    	  controlUI.title = 'Click to center map on your position';
+    	  controlDiv.appendChild(controlUI);
+
+    	  // Set CSS for the control interior.
+    	  var controlText = document.createElement('div');
+    	  controlText.style.color = 'rgb(25,25,25)';
+    	  controlText.style.fontFamily = 'Roboto,Arial,sans-serif';
+    	  controlText.style.fontSize = '12px';
+    	  controlText.style.lineHeight = '28px';
+    	  controlText.style.paddingLeft = '5px';
+    	  controlText.style.paddingRight = '5px';
+    	  controlText.innerHTML = 'Center on Me';
+    	  controlUI.appendChild(controlText);
+
+    	  // Setup the click event listeners: simply set the map to Chicago.
+    	  controlUI.addEventListener('click', function() {
+    	    map.setCenter(myLocation);
+    	    map.setZoom(15);
+    	  });
+
+    	}
+
+
+      google.maps.event.addDomListener(window, 'load', initialize);
+
+
+    </script>
+<style>
+.ondisplay{
+	text-align:center;
+}
+.toggle{
+	font-size:10px;
+	padding:2px 10px 2px 10px;
+	line-height:10px;
+	display: inline-block;
+}
+.toggle a{
+	cursor: pointer;
+}
+</style>
+</head>
+<body class="full-layout">
+<div class="body-wrapper">
+
+<div class="yamm navbar basic default">
+    <div class="navbar-header">
+      <div class="container">
+        <div class="basic-wrapper"> <a class="btn responsive-menu pull-right" data-toggle="collapse" data-target=".navbar-collapse">
+	        <i class='icon-menu-1'></i></a> 
+	        <h1 style="font-color:white;">
+	        <a class="navbar-brand" href="https://beermapping.com"><img src="https://beermapping.com/images/bmplogo.png"/> 
+	        The Beer Mapping Project 
+	        </a></h1> 
+        </div>
+        <div class="collapse navbar-collapse pull-right">
+          <ul class="nav navbar-nav">
+         
+            <li class="dropdown yamm-fullwidth"><a href="#" class="dropdown-toggle js-activated">Search</a>
+              <ul class="dropdown-menu yamm-dropdown-menu">
+                <li>
+                  <div class="yamm-content row">
+                    <div class="col-sm-3">
+                      <h4>Quick Search</h4>
+                      
+                      <form>
+                      <div class="form-group">
+                      <input type="text" id="txt1" onkeyup="bmpSearch(this.value)" placeholder="location name"/>
+                      </div>
+                      </form>
+                      <h4>Locations</h4>
+                      
+                      <ul id="bmpLocations" class="circled">
+                      <p>Start typing above and results will appear here.</p>
+                      </ul>
+                    </div>
+                    <div class="col-sm-4">
+                    <h4>Advanced Search</h4>
+                      <p>Search for locations, by name. If you want to center the map on a city or postal code, there's a specific search in the top and bottom of the site.</p>
+					<p><a href="https://beermapping.com/search/" class="btn-submit">Advanced Search</a> </p>
+                      
+					</div>
+					<div class="col-sm-4">
+					 <h4>Beer Routes</h4>
+					 <p>Or if you want to plan a door to door trip, you can get started creating a Beer Route.</p>
+					 <p><a href="https://beermapping.com/beerroutes/" class="btn btn-green">Beer Routes</a> </p>
+					</div>
+                </li>
+              </ul>
+            </li>
+            <li class="dropdown"><a href="https://beermapping.com/maps/" class="dropdown-toggle js-activated">Locations</a>
+              <ul class="dropdown-menu">
+              	<li> <a href="https://beermapping.com/nearby/">Nearby Locations</a></li>
+              	<li> <a href="https://beermapping.com/cities/">Popular Cities</a></li>
+              	<li> <a href="https://beermapping.com/highestscores/">Highest Scores</a></li>
+				<li class="dropdown-submenu"><a href="https://beermapping.com/recent/additions/">Recent Changes</a>
+					<ul class="dropdown-menu">
+						<li><a href="https://beermapping.com/recent/additions/">Recent Additions</a></li>
+						<li><a href="https://beermapping.com/recent/images/">Recent Photos</a></li>
+						<li><a href="https://beermapping.com/recent/reviews/">Recent Reviews</a></li>
+					</ul>
+				</li>
+				              </ul>
+            </li>
+             <li class="dropdown"><a href="https://beermapping.com/about" class="dropdown-toggle js-activated">More</a>
+            	<ul class="dropdown-menu">
+            		<li><a href="https://beermapping.com/about" class="">About</a> </li>
+            		<li><a href="https://beermapping.com/apps" class="">Applications</a> </li>
+            		<li><a href="https://beermapping.com/blog" class="">News</a> </li>
+            		<li><a href="https://beermapping.threadless.com/" class="">Beer Mapping Shop</a> </li>
+            		<li><a href="https://beermapping.com/contact" class="">Contact</a> </li>
+            		
+            	</ul>
+            </li>  
+
+            <li class="navsearch"><form action="https://beermapping.com/search/" method="GET">
+            <input type="hidden" name="source" value="nav"/><input id="navsearch" type="text" size="24" placeholder="city/state or zip" name="q"></input> 
+            <input class="btn-submit" type="submit" value="go"/></form></li> 
+          	<li>
+          		<div class="loginzone">
+          	    			        <!-- Show Login and Sigup buttons -->
+			            <a href="#" data-toggle="modal" data-target="#loginModal">Log in</a><br/> 
+			            <a href="#" data-toggle="modal" data-target="#signupModal">Sign up</a>
+			    			    </div>
+          	</li>
+          </ul>
+          </ul>
+          
+        </div>
+      </div>
+    </div>
+    <!--/.nav-collapse --> 
+  </div>
+  <!--/.navbar -->
+  <div id="printlogo" style="display:none;"><h2><img src="https://beermapping.com/images/bmplogo.png"/> The Beer Mapping Project</h2></div>
+  
+  <div class="offset"></div>
+ 
+    <div id="home-map-container">
+      <div id="map"></div>
+    </div>
+
+  <div id="out">
+  	  <div class="ondisplay">
+	            <div class="toggle"><a onclick="toggleGroup('Brewery')">
+	            <img id="BreweryPin" src="https://beermapping.com/images/mm_20_red.png"/></a><br/>Brewery
+	            </div>
+	            <div class="toggle"><a onclick="toggleGroup('Brewpub')">
+	            <img id="BrewpubPin" src="https://beermapping.com/images/mm_20_blue.png"/></a><br/>Brewpub
+	            </div>
+	            <div class="toggle"><a onclick="toggleGroup('Beer Bar/Restaurant')">
+	            <img id="BeerBarPin" src="https://beermapping.com/images/mm_20_yellow.png"/></a><br/>Beer Bar
+	            </div>
+	            <div class="toggle"><a onclick="toggleGroup('Beer Store')">
+	            <img id="BeerStorePin" src="https://beermapping.com/images/mm_20_green.png"/></a><br/>Beer Store
+	            </div>
+	            <div class="toggle"><a onclick="toggleGroup('Homebrew')">
+	            <img id="HomebrewPin" src="https://beermapping.com/images/mm_20_brown.png"/></a><br/>Homebrew
+	            </div>
+
+	            <div style="clear:both;"></div>
+	
+	  </div><!--  end ondisplay -->
+  </div>
+  <footer class="black-wrapper">
+    <div class="container inner">
+      <div class="row">
+        <div class="col-sm-3">
+          <div class="widget"> 
+            <div class="divide20"></div>
+            <p>Welcome to the Beer Mapping Project. We're attempting to put beer on the map. If you like beer and you like maps, then you may have found the right place.</p>
+            <p>We find beer so you don't have to.</p>
+            <div class="divide5"></div>
+            <h4>Follow us:</h4>
+            <ul class="social">
+              <li><a href="https://twitter.com/beermapping"><i class="icon-s-twitter"></i></a></li>
+              <li><a href="https://www.facebook.com/beermapping/?fref=ts"><i class="icon-s-facebook"></i></a></li>
+            </ul>
+            <div class="divide20"></div>
+            <h4>Or follow @beerinator:</h4>
+            <ul class="social">
+              <li><a href="https://twitter.com/beerinator"><i class="icon-s-twitter"></i></a></li>
+              <li><a href="https://instagram.com/beerinator"><i class="icon-s-instagram"></i></a></li>
+            </ul>
+          </div>
+          <!-- /.widget --> 
+        </div>
+        <!-- /col -->
+        
+        <div class="col-sm-3">
+          <div class="widget" style="text-align:center;">
+                      <h3 class="section-title widget-title upper">Recent Reviews</h3>
+            <ul class="post-list" style="text-align:center;">
+                          <li>
+                <h6><a href="https://beermapping.com/location/20779">Black Flag Brewing Co.</a></h6>
+                Reviewer: <a href="https://beermapping.com/account/Brad">Brad</a><br/><em>2018-02-05 12:20:00</em> 
+                </li>
+                            <li>
+                <h6><a href="https://beermapping.com/location/21488">Hysteria Brewing Co.</a></h6>
+                Reviewer: <a href="https://beermapping.com/account/Brad">Brad</a><br/><em>2018-02-05 12:18:35</em> 
+                </li>
+                            <li>
+                <h6><a href="https://beermapping.com/location/20221">Calvert Brewing Co.</a></h6>
+                Reviewer: <a href="https://beermapping.com/account/Brad">Brad</a><br/><em>2018-02-05 12:16:43</em> 
+                </li>
+                            <li>
+                <h6><a href="https://beermapping.com/location/12302">Old Bisbee Brewing Co</a></h6>
+                Reviewer: <a href="https://beermapping.com/account/BahHumBrew">BahHumBrew</a><br/><em>2018-02-02 20:42:11</em> 
+                </li>
+                            <li>
+                <h6><a href="https://beermapping.com/location/19972">Hopkins Ordinary Ale Works</a></h6>
+                Reviewer: <a href="https://beermapping.com/account/Brad">Brad</a><br/><em>2018-01-22 08:55:09</em> 
+                </li>
+                          </ul>
+            <!-- /.post-list --> 
+          </div>
+          <!-- /.widget --> 
+        </div>
+        <!-- /col -->
+        
+        <div class="col-sm-3">
+          <div class="widget" style="text-align:center;">
+          	            <h3 class="section-title widget-title upper">Recent Photos</h3>
+            <ul class="post-list">
+                                    <li>
+            	<a href="https://beermapping.com/location/19952#i6652">
+            	<img src="https://s3.amazonaws.com/beermapping/locations/02_10_2018/th_6652_rps20180210_131251.jpg" width="150"/></a>
+            	<br/><a href="https://beermapping.com/location/19952">Bosque Brewing Company - Las Cruces Taproom</a>
+            	<br/>Photo credit: <a href="https://beermapping.com/account/BahHumBrew">BahHumBrew</a>
+           </li>
+                                   <li>
+            	<a href="https://beermapping.com/location/19952#i6651">
+            	<img src="https://s3.amazonaws.com/beermapping/locations/02_10_2018/th_6651_rps20180210_130716.jpg" width="150"/></a>
+            	<br/><a href="https://beermapping.com/location/19952">Bosque Brewing Company - Las Cruces Taproom</a>
+            	<br/>Photo credit: <a href="https://beermapping.com/account/BahHumBrew">BahHumBrew</a>
+           </li>
+                                   <li>
+            	<a href="https://beermapping.com/location/19952#i6650">
+            	<img src="https://s3.amazonaws.com/beermapping/locations/02_10_2018/th_6650_rps20180210_130509.jpg" width="150"/></a>
+            	<br/><a href="https://beermapping.com/location/19952">Bosque Brewing Company - Las Cruces Taproom</a>
+            	<br/>Photo credit: <a href="https://beermapping.com/account/BahHumBrew">BahHumBrew</a>
+           </li>
+                       </ul>
+            
+          </div>
+        </div>
+        <!-- /col -->
+        
+        <div class="col-sm-3">
+          
+          <div class="widget">
+            <h3 class="section-title widget-title upper">Center map on city/state or address:</h3>
+             <form action="https://beermapping.com/search/" method="GET">
+             <div class="form-group" style="padding-bottom:20px;">
+             <input type="text" size="24" placeholder="city/state or zip" name="q"></input>
+             <input type="hidden" name="source" value="nav"/>
+             </div>
+             <input class="btn-submit" type="submit" value="go"/>
+             </form>
+             
+             <div style="border-top: 1px solid #434343;padding-top:20px;">
+           					 <h4>BEER ROUTES</h4>
+					 <p>If you want to plan a door to door trip, you can get started creating a Beer Route.</p>
+					 <p><a href="https://beermapping.com/beerroutes/" class="btn btn-green">Beer Routes</a> </p>
+					</div>
+          </div>
+          <!-- /.widget --> 
+          
+        </div>
+        <!-- /col --> 
+      </div>
+      <!-- /.row --> 
+    </div>
+    <!-- .container -->
+    <div class="sub-footer">
+      <div class="container">
+        <p class="pull-left">&copy;2005 - 2018 beermapping.com - powered by beer.<br/>
+        <a href="https://beermapping.com/privacy/">Privacy</a> | <a href="https://beermapping.com/terms/">Terms</a></p>
+        <ul class="footer-menu pull-right">
+          <li><a href="https://beermapping.com">Home</a></li>
+          <li><a href="https://beermapping.com/search/">Search by Location</a></li>
+          <li><a href="https://beermapping.com/beerroutes/">Beer Routes</a></li>
+          <li><a href="https://beermapping.com/contact/">Contact</a></li>
+          <li><a href="https://beermapping.com/api/">API</a></li>
+        </ul>
+      </div>
+    </div>  </footer>
+  <!-- /footer --> 
+</div>
+
+
+    <div class="_bs">
+<div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog modal-md">
+		<div class="modal-content">
+			<form action="login" class="ajax-form">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+					<h4 class="modal-title">Log in</h4>
+				</div>
+				<div class="modal-body">
+					<div class="alert"></div>
+
+					<p><strong>Have you had an account here before?</strong> If so, we've updated things and you will need to reset your password. Click "Forgot password" below and enter the email address for your account and we'll send you an email.</p>
+					<div class="form-group">
+		                <label for="email">E-mail or Username</label>
+		                <input type="text" name="email" id="email" class="form-control">
+		            </div>
+		            
+		            <div class="form-group">
+		                <label for="password">Password</label>
+		                <input type="password" name="password" id="password" class="form-control">
+		            </div>
+		           
+		            <div class="form-group">
+		                <div class="checkbox">
+			                <label><input type="checkbox" name="remember" value="1"> Remember me</label>
+			            </div>
+		            </div>
+
+		            			            <span class="help-block">Or connect with a social network</span>
+			            <div class="social-connect clearfix">
+			            				            		<a href="https://beermapping.com/login/oauth.php?provider=facebook" class="connect facebook" title="main.connect_with_facebook">Facebook</a>
+			            				            		<a href="https://beermapping.com/login/oauth.php?provider=google" class="connect google" title="main.connect_with_google">Google</a>
+			            				            		<a href="https://beermapping.com/login/oauth.php?provider=twitter" class="connect twitter" title="main.connect_with_twitter">Twitter</a>
+			            				            </div>
+			        
+				</div>
+				<div class="modal-footer">
+					<div class="pull-left">
+						<button type="submit" class="btn btn-primary">Log in</button>
+					</div>
+					<a href="#" data-toggle="modal" data-target="#reminderModal">Forgot password?</a> <br>
+					<a href="#" data-toggle="modal" data-target="#activationModal">Resend activation E-mail</a>
+				</div>
+			</form>
+		</div>
+	</div>
+</div><div class="modal fade" id="signupModal" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog modal-md">
+		<div class="modal-content">
+			<form action="signup" class="ajax-form">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+					<h4 class="modal-title">Sign up</h4>
+				</div>
+				<div class="modal-body">
+					<div class="alert"></div>
+					
+											<div class="form-group">
+					        <label for="signup-username">Username</label>
+					        <input type="text" name="username" id="signup-username" class="form-control">
+					    </div>
+					
+				    <div class="form-group">
+				        <label for="signup-email">E-mail</label>
+				        <input type="text" name="email" id="signup-email" class="form-control">
+				    </div>
+
+				    <div class="form-group">
+				        <label for="signup-pass1">Password</label>
+				        <input type="password" name="pass1" id="signup-pass1" class="form-control" autocomplete="off" value="">
+				    </div>
+
+				    <!--
+				    <div class="form-group">
+				        <label for="signup-pass2">Verify password</label>
+				        <input type="password" name="pass2" id="signup-pass2" class="form-control" autocomplete="off">
+				    </div>
+				    -->
+
+				    
+					<div class="form-group recaptcha"></div>
+
+								            <span class="help-block">Or connect with a social network</span>
+			            <div class="social-connect clearfix">
+			            									<a href="https://beermapping.com/login/oauth.php?provider=facebook" class="connect facebook" title="main.connect_with_facebook">Facebook</a>
+															<a href="https://beermapping.com/login/oauth.php?provider=google" class="connect google" title="main.connect_with_google">Google</a>
+															<a href="https://beermapping.com/login/oauth.php?provider=twitter" class="connect twitter" title="main.connect_with_twitter">Twitter</a>
+										            </div>
+			        
+				</div>
+				<div class="modal-footer">
+					<div class="pull-left">
+						<button type="submit" class="btn btn-primary">Sign up</button>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade" id="signupSuccessModal" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog modal-md">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+				<h4 class="modal-title">Check your email</h4>
+			</div>
+			<div class="modal-body"><p>We've sent you an email. Click the link in the email to activate your account.</p>
+						   <p>If you don't see the email, check other places it might be, like your junk, spam, social, or other folders.</p></div>
+		</div>
+	</div>
+</div><div class="modal fade" id="activationModal" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog modal-md">
+		<div class="modal-content">
+			<form action="activation" class="ajax-form">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+					<h4 class="modal-title">Send activation link</h4>
+				</div>
+				<div class="modal-body">
+					<div class="alert"></div>
+
+					<div class="form-group">
+		                <label for="activation-email">Enter your email</label>
+		                <input type="text" name="email" id="activation-email" class="form-control">
+		            </div>
+					<div class="form-group recaptcha"></div>
+				</div>
+				<div class="modal-footer">
+					<div class="pull-left">
+						<button type="submit" class="btn btn-primary">Continue</button>
+					</div>
+					<a href="#" data-toggle="modal" data-target="#loginModal" class="v-middle">Back to Log in</a>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade" id="activationSuccessModal" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog modal-md">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+				<h4 class="modal-title">Check your email</h4>
+			</div>
+			<div class="modal-body"><p>We've sent you an email. Click the link in the email to activate your account.</p>
+						   <p>If you don't see the email, check other places it might be, like your junk, spam, social, or other folders.</p></div>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade" id="activateModal" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog modal-md">
+		<div class="modal-content">
+			<form action="activate" class="ajax-form">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+					<h4 class="modal-title">Activate account</h4>
+				</div>
+				<div class="modal-body">
+					<div class="alert"></div>
+					<input type="hidden" name="reminder">
+				</div>
+				<div class="modal-footer">
+					<a href="#" data-toggle="modal" data-target="#activationModal" class="v-middle">Resend activation E-mail</a>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade" id="activateSuccessModal" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog modal-md">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+				<h4 class="modal-title">Account activated</h4>
+			</div>
+			<div class="modal-body">
+				<p>Your account has been activated. You can login now.</p><br>
+				<p><a href="#" data-toggle="modal" data-target="#loginModal" class="btn btn-primary">Log in</a></p>
+			</div>
+		</div>
+	</div>
+</div><div class="modal fade" id="reminderModal" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog modal-md">
+		<div class="modal-content">
+			<form action="reminder" class="ajax-form">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+					<h4 class="modal-title">Recover your account password</h4>
+				</div>
+				<div class="modal-body">
+					<div class="alert"></div>
+					
+					
+					<p>Enter your email address associated with your account and we'll send you an email that should help you get back in. If you have trouble, or can't remember which email, close this window and use the Contact link at the bottom of this page</p>
+					<div class="form-group">
+		                <label for="reminder-email">Enter your email</label>
+		                <input type="text" name="email" id="reminder-email" class="form-control">
+		            </div>
+					<div class="form-group recaptcha"></div>
+				</div>
+				<div class="modal-footer">
+					<div class="pull-left">
+						<button type="submit" class="btn btn-primary">Continue</button>
+					</div>
+					<a href="#" data-toggle="modal" data-target="#loginModal" class="v-middle">Back to Log in</a>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade" id="reminderSuccessModal" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog modal-md">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+				<h4 class="modal-title">Check your email</h4>
+			</div>
+			<div class="modal-body"><p>We've sent you an email. Click the link in the email to reset your password.</p>
+						   <p>If you don't see the email, check other places it might be, like your junk, spam, social, or other folders.</p></div>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade" id="resetModal" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog modal-md">
+		<div class="modal-content">
+			<form action="reset" class="ajax-form">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+					<h4 class="modal-title">Reset your password</h4>
+				</div>
+				<div class="modal-body">
+					<div class="alert"></div>
+
+					<div class="form-group">
+		                <label for="reset-pass1">New password</label>
+		                <input type="password" name="pass1" id="reset-pass1" class="form-control">
+		            </div>
+		            
+		            <div class="form-group">
+		                <label for="reset-pass2">Verify password</label>
+		                <input type="password" name="pass2" id="reset-pass2" class="form-control">
+		            </div>
+		            <input type="hidden" name="reminder">
+				</div>
+				<div class="modal-footer">
+					<div class="pull-left">
+						<button type="submit" class="btn btn-primary">Change Password</button>
+					</div>
+					<a href="#" data-toggle="modal" data-target="#reminderModal" class="v-middle">Generate new one</a>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade" id="resetSuccessModal" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog modal-md">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+				<h4 class="modal-title">Password changed</h4>
+			</div>
+			<div class="modal-body">
+				<p>Your password has been successfully changed. You can login now.</p><br>
+				<p><a href="#" data-toggle="modal" data-target="#loginModal" class="btn btn-primary">Log in</a></p>
+			</div>
+		</div>
+	</div>
+</div></div>    
+<!-- /.body-wrapper --> 
+<!-- Bootstrap core JavaScript
+    ================================================== --> 
+<!-- Placed at the end of the document so the pages load faster --> 
+ 
+<script src="style/js/bootstrap.min.js"></script> 
+<script src="style/js/twitter-bootstrap-hover-dropdown.min.js"></script> 
+<script src="style/js/jquery.themepunch.plugins.min.js"></script> 
+<script src="style/js/jquery.themepunch.revolution.min.js"></script> 
+<script src="style/js/jquery.fancybox.pack.js"></script> 
+<script src="style/js/fancybox/helpers/jquery.fancybox-thumbs.js?v=1.0.2"></script> 
+<script src="style/js/fancybox/helpers/jquery.fancybox-media.js?v=1.0.0"></script> 
+<script src="style/js/jquery.isotope.min.js"></script> 
+<script src="style/js/jquery.easytabs.min.js"></script> 
+<script src="style/js/owl.carousel.min.js"></script> 
+<script src="style/js/jquery.fitvids.js"></script>
+<script src="style/js/google-code-prettify/prettify.js"></script> 
+<script src="style/js/jquery.slickforms.js"></script> 
+<script src="style/js/retina.js"></script> 
+<script src="style/js/scripts.js"></script>
+
+<script src="style/js/bmp.locsearch.js"></script>
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-62423-2', 'auto');
+  ga('send', 'pageview');
+
+</script>
 </body>
 </html>
